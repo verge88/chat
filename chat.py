@@ -2,33 +2,32 @@ from flask import Flask, request, jsonify
 from gradio_client import Client
 
 app = Flask(__name__)
-client = Client("yuntian-deng/ChatGPT4")
+client = Client("Qwen/Qwen2.5-72B-Instruct")
 
-
-@app. route('/predict', methods=['POST', 'GET' ])
+@app.route('/model_chat', methods=['POST', 'GET'])
 def predict():
-    # Extract the required parameters from the incoming request
-    data = request.args
-
-    # Validate and retrieve the necessary parameters
-    input_text = data.get('input_text', '')
-
-
-    if not input_text:
-        return jsonify({'error': 'Missing required parameters'}), 400
     try:
-        # Use the Gradio client to make a prediction
+        # Обработка текстового ввода
+        query = request.form.get('input_text', '') if request.method == 'POST' else request.args.get('input_text', '')
+
+        if not query:
+            return jsonify({'error': 'Missing required input_text'}), 400
+
+        # Обработка файла, если предоставлен
+        file = request.files.get('file')
+        file_data = None
+        if file:
+            file_data = {'file': file, 'alt_text': file.filename}
+
+        # Вызов модели через Gradio
         result = client.predict(
-            inputs=input_text,
-            top_p=1,
-            temperature=1,
-            chat_counter=0,
-            chatbot=[],
-            api_name="/predict"
+            query=query,
+            history=[file_data],
+            system="You are Qwen, created by Alibaba Cloud. You are a helpful assistant.",
+            api_name="/model_chat"
         )
 
         return jsonify({'result': result}), 200
-
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
