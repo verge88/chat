@@ -8,7 +8,7 @@ client = Client("Qwen/Qwen2.5-72B-Instruct")
 def predict():
     try:
         # Обработка текстового ввода
-        query = request.form.get('input_text', '') if request.method == 'POST' else request.args.get('input_text', '')
+        query = request.form.get('query', '') if request.method == 'POST' else request.args.get('query', '')
 
         if not query:
             return jsonify({'error': 'Missing required input_text'}), 400
