@@ -11,7 +11,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app = Flask(__name__)
 
-@app.route('/add_text', methods=['POST'])
+@app.route('/add_text', methods=['POST', 'GET'])
 def add_text():
     try:
         # Извлекаем текстовые данные из формы
