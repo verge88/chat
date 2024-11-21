@@ -4,26 +4,28 @@ from gradio_client import Client
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-72B-Instruct")
 
-@app.route('/model_chat', methods=['POST', 'GET'])
+@app.route('/predict', methods=['POST', 'GET'])
 def predict():
     try:
         # Обработка текстового ввода
         query = request.form.get('query', '') if request.method == 'POST' else request.args.get('query', '')
 
         if not query:
-            return jsonify({'error': 'Missing required input_text'}), 400
+            return jsonify({'error': 'Missing required query'}), 400
 
-        # Обработка файла, если предоставлен
-        file = request.files.get('file')
-        file_data = None
-        if file:
-            file_data = {'file': file, 'alt_text': file.filename}
+        # Обработка истории чата, если предоставлена
+        history = request.form.get('history', []) if request.method == 'POST' else request.args.get('history', [])
+        if isinstance(history, str):
+            history = eval(history)  # Convert string representation of list to list
+
+        # Обработка системного сообщения, если предоставлено
+        system = request.form.get('system', 'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.') if request.method == 'POST' else request.args.get('system', 'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.')
 
         # Вызов модели через Gradio
         result = client.predict(
             query=query,
-            history=[file_data],
-            system="You are Qwen, created by Alibaba Cloud. You are a helpful assistant.",
+            history=history,
+            system=system,
             api_name="/model_chat"
         )
 
