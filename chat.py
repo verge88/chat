@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from gradio_client import Client
 import os
+import json
 
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
@@ -9,32 +10,28 @@ client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 TEMP_DIR = 'temp_files'
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-@app.route('/predict', methods=['POST'])
-def predict():
+@app.route('/add_text', methods=['POST'])
+def add_text():
     try:
         # Получение данных из запроса
         data = request.json
         query = data.get('query', '')
         history = data.get('history', [])
-        system = data.get('system', 'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.')
-        files = data.get('files', [])
-
+        
         # Обработка загруженных файлов
+        files = request.files.getlist('files')
         uploaded_files = []
-        for file_path in files:
-            file_name = os.path.basename(file_path)
-            destination = os.path.join(TEMP_DIR, file_name)
-            with open(file_path, 'rb') as f:
-                with open(destination, 'wb') as f_out:
-                    f_out.write(f.read())
-            uploaded_files.append(destination)
+        for file in files:
+            file_path = os.path.join(TEMP_DIR, file.filename)
+            file.save(file_path)
+            uploaded_files.append(file_path)
 
         # Создание входных данных для API
         _input = {
             "files": uploaded_files,
             "text": query
         }
-
+        
         # Вызов модели через Gradio
         result = client.predict(
             _input=_input,
@@ -43,7 +40,7 @@ def predict():
         )
 
         # Извлечение результатов
-        new_history = result[0]['value']
+        new_history = result[0]
         updated_chatbot = result[1]
 
         return jsonify({
