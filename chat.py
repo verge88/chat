@@ -5,17 +5,16 @@ import os
 # Создаем клиент для обращения к API
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
-# Инициализируем Flask
-app = Flask(__name__)
-
 # Директория для временного хранения загруженных файлов
 UPLOAD_FOLDER = './uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+app = Flask(__name__)
+
 @app.route('/add_text', methods=['POST'])
 def add_text():
     try:
-        # Проверяем, содержит ли запрос JSON-данные
+        # Извлекаем текстовые данные из формы
         text = request.form.get("text", "")
         files = request.files.getlist("files")  # Список загруженных файлов
 
@@ -28,7 +27,7 @@ def add_text():
                 file_paths.append(file_path)
 
         # Выполняем запрос к API
-        result = client.predict(
+        api_response = client.predict(
             _input={"files": file_paths, "text": text},
             _chatbot=[],
             api_name="/add_text"
@@ -38,8 +37,25 @@ def add_text():
         for file_path in file_paths:
             os.remove(file_path)
 
-        # Возвращаем результат
-        return jsonify({"result": result[0]}), 200
+        # Обрабатываем ответ API
+        new_history = api_response.get("new_history", {}).get("value", {})
+        updated_chatbot = api_response.get("updated_chatbot", [])
+
+        # Формируем финальный ответ
+        result = {
+            "new_history": new_history,
+            "updated_chatbot": [
+                {
+                    "text": message.get("text", ""),
+                    "avatar": message.get("avatar", ""),
+                    "files": message.get("files", [])
+                } if message else None
+                for message, _ in updated_chatbot
+            ]
+        }
+
+        # Возвращаем обработанный результат
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
