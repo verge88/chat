@@ -9,30 +9,25 @@ client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 TEMP_DIR = 'temp_files'
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-@app.route('/predict', methods=['POST', 'GET'])
+@app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Обработка текстового ввода
-        query = request.form.get('query', '') if request.method == 'POST' else request.args.get('query', '')
-
-        if not query:
-            return jsonify({'error': 'Missing required query'}), 400
-
-        # Обработка истории чата, если предоставлена
-        history = request.form.get('history', []) if request.method == 'POST' else request.args.get('history', [])
-        if isinstance(history, str):
-            history = eval(history)  # Convert string representation of list to list
-
-        # Обработка системного сообщения, если предоставлено
-        system = request.form.get('system', 'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.') if request.method == 'POST' else request.args.get('system', 'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.')
+        # Получение данных из запроса
+        data = request.json
+        query = data.get('query', '')
+        history = data.get('history', [])
+        system = data.get('system', 'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.')
+        files = data.get('files', [])
 
         # Обработка загруженных файлов
         uploaded_files = []
-        for file in request.files.getlist('file'):
-            if file.filename != '':
-                filename = os.path.join(TEMP_DIR, file.filename)
-                file.save(filename)
-                uploaded_files.append(filename)
+        for file_path in files:
+            file_name = os.path.basename(file_path)
+            destination = os.path.join(TEMP_DIR, file_name)
+            with open(file_path, 'rb') as f:
+                with open(destination, 'wb') as f_out:
+                    f_out.write(f.read())
+            uploaded_files.append(destination)
 
         # Создание входных данных для API
         _input = {
@@ -48,7 +43,7 @@ def predict():
         )
 
         # Извлечение результатов
-        new_history = result[0]
+        new_history = result[0]['value']
         updated_chatbot = result[1]
 
         return jsonify({
