@@ -18,11 +18,11 @@ def predict():
         return jsonify({'error': 'Missing required parameters'}), 400
 
         # Обработка файла, если предоставлен
-        file = request.files.get('file')
-        file_data = None
-        if file:
-            file_data = {'file': file, 'alt_text': file.filename}
-            
+    file = request.files.get('file')
+    file_data = None
+    if file:
+        file_data = {'file': file, 'alt_text': file.filename}
+
     try:
 
         client.predict(
