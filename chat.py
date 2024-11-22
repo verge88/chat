@@ -17,12 +17,6 @@ def predict():
     if not input_text:
         return jsonify({'error': 'Missing required parameters'}), 400
     try:
-        # Use the Gradio client to make a prediction
-        # result = client.predict(
-		# 	_input={"files": [], "text": input_text},
-		# 	_chatbot=[],
-		# 	api_name="/agent_run"
-        # )
 
         client.predict(
             _input={"files": [], "text": input_text},
@@ -31,11 +25,7 @@ def predict():
         )
 
         result = client.predict(
-            _chatbot=[[{"id": None, "elem_id": None, "elem_classes": None, "name": None, "text": "hello",
-                        "flushing": None, "avatar": "", "files": []}, [
-                           {"id": None, "elem_id": None, "elem_classes": None, "name": None,
-                            "text": '',
-                            "flushing": None, "avatar": "", "files": []}]], [
+            _chatbot=[[
                           {"id": None, "elem_id": None, "elem_classes": None, "name": None,
                            "text": input_text,
                            "files": []}, None]],
