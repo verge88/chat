@@ -47,7 +47,7 @@ def predict():
         
         # Первый predict для добавления текста
         client.predict(
-            *input={"files": file_paths, "text": input_text},
+            input={"files": file_paths, "text": input_text},
             _chatbot=[],
             api_name="/add_text"
         )
