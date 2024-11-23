@@ -1,29 +1,26 @@
 from flask import Flask, request, jsonify
 from gradio_client import Client
-import tempfile
-import os
+import urllib.parse
 
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
-@app.route('/predict', methods=['POST', 'GET'])
+@app.route('/predict', methods=['GET'])
 def predict():
     try:
-        # Получаем текст из параметров запроса
+        # Получаем текст и пути к файлам из параметров URL
         input_text = request.args.get('text', '')
+        files_param = request.args.get('files', '')
         
         files_data = []
-        # Обработка файлов
-        if request.files:
-            for file in request.files.getlist('files'):
-                # Создаем временный файл
-                temp_dir = tempfile.mkdtemp()
-                temp_path = os.path.join(temp_dir, file.filename)
-                file.save(temp_path)
-                
+        if files_param:
+            # Разбиваем строку с путями файлов
+            file_paths = files_param.split(',')
+            for file_path in file_paths:
+                decoded_path = urllib.parse.unquote(file_path)
                 files_data.append({
-                    "file": temp_path,
-                    "alt_text": file.filename
+                    "file": decoded_path,
+                    "alt_text": decoded_path.split('/')[-1]
                 })
 
         # Первый predict для инициализации
@@ -47,14 +44,6 @@ def predict():
             }, None]],
             api_name="/agent_run"
         )
-
-        # Очистка временных файлов
-        for file_data in files_data:
-            try:
-                os.remove(file_data["file"])
-                os.rmdir(os.path.dirname(file_data["file"]))
-            except:
-                pass
 
         return jsonify({'result': result}), 200
 
