@@ -31,7 +31,11 @@ def predict():
         )
 
         result = client.predict(
-            _chatbot=[ [
+            _chatbot=[[{"id": None, "elem_id": None, "elem_classes": None, "name": None, "text": "hello",
+                        "flushing": None, "avatar": "", "files": []}, [
+                           {"id": None, "elem_id": None, "elem_classes": None, "name": None,
+                            "text": '',
+                            "flushing": None, "avatar": "", "files": []}]], [
                           {"id": None, "elem_id": None, "elem_classes": None, "name": None,
                            "text": input_text,
                            "files": []}, None]],
