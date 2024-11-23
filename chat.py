@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from gradio_client import Client
-app = Flask(name)
+app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 @app. route('/predict', methods=['POST', 'GET' ])
 def predict():
@@ -31,5 +31,5 @@ def predict():
         return jsonify({'result': result}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-if name == 'main':
+if name == '__main__':
     app.run(debug=True)
