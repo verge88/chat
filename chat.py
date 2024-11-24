@@ -1,64 +1,48 @@
 from flask import Flask, request, jsonify
 from gradio_client import Client
-import tempfile
 import os
-import base64
 
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    try:
-        input_text = request.form.get('text', '')
-        files = request.files.getlist('files')
-        
-        files_data = []
-        if files:
-            for file in files:
-                # Создаем временный файл
-                temp_dir = tempfile.mkdtemp()
-                temp_path = os.path.join(temp_dir, file.filename)
-                
-                # Сохраняем файл
-                file.save(temp_path)
-                
-                # Читаем файл как base64
-                with open(temp_path, 'rb') as f:
-                    file_content = f.read()
-                    file_base64 = base64.b64encode(file_content).decode('utf-8')
-                
-                files_data.append({
-                    "name": file.filename,
-                    "data": f"data:application/octet-stream;base64,{file_base64}"
-                })
+    # Проверка наличия текста в запросе
+    input_text = request.form.get('text', '')
+    if not input_text:
+        return jsonify({'error': 'Missing required parameter: text'}), 400
 
-        # Формируем входные данные для Gradio
+    # Проверка наличия файлов в запросе
+    files = request.files.getlist('files')
+    uploaded_files = []
+
+    for file in files:
         try:
-            # Отправляем один запрос с текстом и файлами
-            result = client.predict(
-                fn_index=0,  # Индекс функции в Gradio
-                text=input_text,
-                files=files_data
-            )
-
-            # Очистка временных файлов
-            for file in files:
-                try:
-                    temp_path = os.path.join(tempfile.gettempdir(), file.filename)
-                    os.remove(temp_path)
-                except:
-                    pass
-
-            return jsonify({'result': result}), 200
-
+            # Сохранение файлов во временной директории для чтения
+            file_path = os.path.join('temp', file.filename)
+            os.makedirs('temp', exist_ok=True)
+            file.save(file_path)
+            uploaded_files.append(file_path)
         except Exception as e:
-            print(f"Error in Gradio API call: {str(e)}")
-            raise
+            return jsonify({'error': f"Failed to process file {file.filename}: {str(e)}"}), 500
 
+    try:
+        # Gradio prediction
+        file_data = [{"name": os.path.basename(f), "content": open(f, 'rb').read()} for f in uploaded_files]
+        result = client.predict(
+            _input={"files": file_data, "text": input_text},
+            _chatbot=[],
+            api_name="/agent_run"
+        )
+
+        # Удаляем временные файлы
+        for file_path in uploaded_files:
+            os.remove(file_path)
+
+        return jsonify({'result': result}), 200
     except Exception as e:
-        print(f"Error in predict route: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
