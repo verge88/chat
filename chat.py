@@ -8,14 +8,15 @@ client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
 @app.route('/predict', methods=['POST', 'GET'])
 def predict():
-    try:
+    
         # Получаем текст из формы
-        input_text = request.form.get('text', '')
+    input_text = request.form.get('text', '')
         
-        files_data = []
+    files_data = []
         # Получаем файлы из запроса
-        if 'files' in request.files:
-            files = request.files.getlist('files')
+      try:  
+            if 'files' in request.files:
+                files = request.files.getlist('files')
             for file in files:
                 # Создаем временную директорию и файл
                 temp_dir = tempfile.mkdtemp()
