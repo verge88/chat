@@ -1,40 +1,46 @@
 from flask import Flask, request, jsonify
 from gradio_client import Client
+import urllib.parse
 
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
-
-@app. route('/predict', methods=['POST', 'GET' ])
+@app.route('/predict', methods=['GET'])
 def predict():
-    # Extract the required parameters from the incoming request
-    data = request.args
-
-    # Validate and retrieve the necessary parameters
-    input_text = data.get('text', '')
-
-
-    if not input_text:
-        return jsonify({'error': 'Missing required parameters'}), 400
     try:
-        # Use the Gradio client to make a prediction
-        # result = client.predict(
-		# 	_input={"files": [], "text": input_text},
-		# 	_chatbot=[],
-		# 	api_name="/agent_run"
-        # )
+        # Получаем параметры из URL
+        input_text = request.args.get('text', '')
+        files = request.args.getlist('files')  # Получаем список файлов из параметров
+        
+        files_data = []
+        if files:
+            for file_path in files:
+                # Декодируем путь файла
+                decoded_path = urllib.parse.unquote(file_path)
+                files_data.append({
+                    "file": decoded_path,
+                    "alt_text": decoded_path.split('/')[-1]
+                })
 
+        # Первый predict для инициализации
         client.predict(
-            _input={"files": [], "text": input_text},
+            input={"files": files_data, "text": input_text},
             _chatbot=[],
             api_name="/add_text"
         )
 
+        # Второй predict для получения ответа
         result = client.predict(
-            _chatbot=[ [
-                          {"id": None, "elem_id": None, "elem_classes": None, "name": None,
-                           "text": input_text,
-                           "files": []}, None]],
+            chatbot=[[{
+                "id": None,
+                "elem_id": None,
+                "elem_classes": None,
+                "name": None,
+                "text": input_text,
+                "flushing": None,
+                "avatar": "",
+                "files": files_data
+            }, None]],
             api_name="/agent_run"
         )
 
