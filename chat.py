@@ -1,11 +1,11 @@
-from flask import Flask, request, jsonify
+бfrom flask import Flask, request, jsonify
 from gradio_client import Client
 
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['POST','GET'])
 def predict():
     try:
         # Получение текста из запроса
