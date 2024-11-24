@@ -1,4 +1,4 @@
-бfrom flask import Flask, request, jsonify
+from flask import Flask, request, jsonify
 from gradio_client import Client
 
 app = Flask(__name__)
