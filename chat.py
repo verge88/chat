@@ -5,7 +5,7 @@ import urllib.parse
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
-@app.route('/predict', methods=['GET'])
+@app.route('/predict', methods=['POST', 'GET'])
 def predict():
     try:
         # Получаем параметры из URL
