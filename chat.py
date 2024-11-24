@@ -40,7 +40,7 @@ def predict_get():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict_post', methods=['POST'])
 def predict_post():
     try:
         # Извлечение текста
