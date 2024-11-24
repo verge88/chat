@@ -56,9 +56,10 @@ def predict_post():
         for file in uploaded_files:
             if file:
                 # Читаем содержимое файлов
+                file_content = file.read()
                 files_content.append({
                     'filename': file.filename,
-                    'content': file.read().decode('utf-8')  # Пример для текстовых файлов
+                    'content': file_content.decode('utf-8') if file_content else ''  # Пример для текстовых файлов
                 })
 
         # Используем Gradio клиент для обработки
