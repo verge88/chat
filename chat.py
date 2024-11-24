@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from gradio_client import Client
-import urllib.parse
+import base64
+import tempfile
+import os
 
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
@@ -8,28 +10,34 @@ client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 @app.route('/predict', methods=['POST', 'GET'])
 def predict():
     try:
-        # Получаем параметры из URL
         input_text = request.args.get('text', '')
-        files = request.args.getlist('files')  # Получаем список файлов из параметров
+        file_contents = request.args.getlist('files')  # Получаем закодированные файлы
+        filenames = request.args.getlist('filenames')  # Получаем имена файлов
         
         files_data = []
-        if files:
-            for file_path in files:
-                # Декодируем путь файла
-                decoded_path = urllib.parse.unquote(file_path)
+        if file_contents and filenames:
+            for content, filename in zip(file_contents, filenames):
+                # Создаем временный файл
+                temp_dir = tempfile.mkdtemp()
+                temp_path = os.path.join(temp_dir, filename)
+                
+                # Декодируем base64 и сохраняем во временный файл
+                file_bytes = base64.b64decode(content)
+                with open(temp_path, 'wb') as f:
+                    f.write(file_bytes)
+                
                 files_data.append({
-                    "file": decoded_path,
-                    "alt_text": decoded_path.split('/')[-1]
+                    "file": temp_path,
+                    "alt_text": filename
                 })
 
-        # Первый predict для инициализации
+        # Отправляем запросы в Gradio
         client.predict(
             _input={"files": files_data, "text": input_text},
             _chatbot=[],
             api_name="/add_text"
         )
 
-        # Второй predict для получения ответа
         result = client.predict(
             _chatbot=[[{
                 "id": None,
@@ -43,6 +51,14 @@ def predict():
             }, None]],
             api_name="/agent_run"
         )
+
+        # Очищаем временные файлы
+        for file_data in files_data:
+            try:
+                os.remove(file_data["file"])
+                os.rmdir(os.path.dirname(file_data["file"]))
+            except:
+                pass
 
         return jsonify({'result': result}), 200
 
