@@ -1,34 +1,32 @@
 from flask import Flask, request, jsonify
 from gradio_client import Client
-import base64
 import tempfile
 import os
 
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
-@app.route('/predict', methods=['POST', 'GET'])
+@app.route('/predict', methods=['POST'])
 def predict():
     try:
-        input_text = request.args.get('text', '')
-        file_contents = request.args.getlist('files')  # Получаем закодированные файлы
-        filenames = request.args.getlist('filenames')  # Получаем имена файлов
+        # Получаем текст из формы
+        input_text = request.form.get('text', '')
         
         files_data = []
-        if file_contents and filenames:
-            for content, filename in zip(file_contents, filenames):
-                # Создаем временный файл
+        # Получаем файлы из запроса
+        if 'files' in request.files:
+            files = request.files.getlist('files')
+            for file in files:
+                # Создаем временную директорию и файл
                 temp_dir = tempfile.mkdtemp()
-                temp_path = os.path.join(temp_dir, filename)
+                temp_path = os.path.join(temp_dir, file.filename)
                 
-                # Декодируем base64 и сохраняем во временный файл
-                file_bytes = base64.b64decode(content)
-                with open(temp_path, 'wb') as f:
-                    f.write(file_bytes)
+                # Сохраняем файл
+                file.save(temp_path)
                 
                 files_data.append({
                     "file": temp_path,
-                    "alt_text": filename
+                    "alt_text": file.filename
                 })
 
         # Отправляем запросы в Gradio
