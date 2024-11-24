@@ -1,3 +1,11 @@
+from flask import Flask, request, jsonify
+from gradio_client import Client
+import tempfile
+import os
+
+app = Flask(__name__)
+client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -68,3 +76,6 @@ def predict():
     except Exception as e:
         print(f"Error in predict route: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
