@@ -2,4 +2,3 @@ gradio_client
 flask
 gunicorn
 werkzeug
-tempfile
