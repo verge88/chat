@@ -2,3 +2,5 @@ gradio_client
 flask
 gunicorn
 werkzeug
+base64
+tempfile
