@@ -14,21 +14,21 @@ def predict():
         
     files_data = []
         # Получаем файлы из запроса
-      try:  
-            if 'files' in request.files:
-                files = request.files.getlist('files')
-            for file in files:
+    try:  
+        if 'files' in request.files:
+            files = request.files.getlist('files')
+        for file in files:
                 # Создаем временную директорию и файл
-                temp_dir = tempfile.mkdtemp()
-                temp_path = os.path.join(temp_dir, file.filename)
+            temp_dir = tempfile.mkdtemp()
+            temp_path = os.path.join(temp_dir, file.filename)
                 
                 # Сохраняем файл
-                file.save(temp_path)
+            file.save(temp_path)
                 
-                files_data.append({
-                    "file": temp_path,
-                    "alt_text": file.filename
-                })
+            files_data.append({
+                "file": temp_path,
+                "alt_text": file.filename
+            })
 
         # Отправляем запросы в Gradio
         client.predict(
