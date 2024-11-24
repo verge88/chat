@@ -9,7 +9,7 @@ client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 def predict():
     try:
         # Извлечение текста
-        input_text = request.form.get('text', '')
+        input_text = request.args.get('text', '')
 
         if not input_text:
             return jsonify({'error': 'Missing required "text" parameter'}), 400
