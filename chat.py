@@ -31,7 +31,7 @@ def predict():
 
         # Второй predict для получения ответа
         result = client.predict(
-            chatbot=[[{
+            _chatbot=[[{
                 "id": None,
                 "elem_id": None,
                 "elem_classes": None,
