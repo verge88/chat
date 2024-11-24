@@ -23,11 +23,16 @@ def predict():
                 "name": file.filename,
                 "content": file.read().decode('utf-8')  # Предполагается текстовый файл
             })
-
-        # Вызов модели через Gradio-клиент
-        result = client.predict(
-            _input={"files": files_content, "text": input_text},
+        client.predict(
+            _input={"files": [], "text": input_text},
             _chatbot=[],
+            api_name="/add_text"
+        )
+        result = client.predict(
+            _chatbot=[ [
+                          {"id": None, "elem_id": None, "elem_classes": None, "name": None,
+                           "text": input_text,
+                           "files": []}, None]],
             api_name="/agent_run"
         )
 
