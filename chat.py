@@ -14,55 +14,53 @@ def predict():
         
     files_data = []
         # Получаем файлы из запроса
-    try:  
-        if 'files' in request.files:
-            files = request.files.getlist('files')
-        for file in files:
+    
+    if 'files' in request.files:
+        files = request.files.getlist('files')
+    for file in files:
                 # Создаем временную директорию и файл
-            temp_dir = tempfile.mkdtemp()
-            temp_path = os.path.join(temp_dir, file.filename)
+        temp_dir = tempfile.mkdtemp()
+        temp_path = os.path.join(temp_dir, file.filename)
                 
                 # Сохраняем файл
-            file.save(temp_path)
+        file.save(temp_path)
                 
-            files_data.append({
-                "file": temp_path,
-                "alt_text": file.filename
-            })
+        files_data.append({
+            "file": temp_path,
+            "alt_text": file.filename
+        })
 
         # Отправляем запросы в Gradio
-        client.predict(
-            _input={"files": files_data, "text": input_text},
-            _chatbot=[],
-            api_name="/add_text"
-        )
+    client.predict(
+        _input={"files": files_data, "text": input_text},
+        _chatbot=[],
+        api_name="/add_text"
+    )
 
-        result = client.predict(
-            _chatbot=[[{
-                "id": None,
-                "elem_id": None,
-                "elem_classes": None,
-                "name": None,
-                "text": input_text,
-                "flushing": None,
-                "avatar": "",
-                "files": files_data
-            }, None]],
-            api_name="/agent_run"
-        )
+    result = client.predict(
+        _chatbot=[[{
+            "id": None,
+            "elem_id": None,
+            "elem_classes": None,
+            "name": None,
+            "text": input_text,
+            "flushing": None,
+            "avatar": "",
+            "files": files_data
+        }, None]],
+        api_name="/agent_run"
+    )
 
         # Очищаем временные файлы
-        for file_data in files_data:
-            try:
-                os.remove(file_data["file"])
-                os.rmdir(os.path.dirname(file_data["file"]))
-            except:
-                pass
+    for file_data in files_data:
+        try:
+            os.remove(file_data["file"])
+            os.rmdir(os.path.dirname(file_data["file"]))
+        except:
+            pass
 
-        return jsonify({'result': result}), 200
+    return jsonify({'result': result}), 200
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
+    
 if __name__ == '__main__':
     app.run(debug=True)
