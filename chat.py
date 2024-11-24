@@ -6,10 +6,13 @@ import os
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
-@app.route('/predict', methods=['POST', 'GET'])
+@app.route('/predict', methods=['POST'])
 def predict():
     try:
         input_text = request.form.get('text', '')
+        if not input_text:
+            input_text = "Проанализируйте прикрепленный файл" # Дефолтный текст если нет входного текста
+            
         files = request.files.getlist('files')
         
         files_data = []
@@ -27,38 +30,51 @@ def predict():
                     "alt_text": file.filename
                 })
 
-        # Отправляем запросы в Gradio
-        client.predict(
-            _input={"files": files_data, "text": input_text},
-            _chatbot=[],
-            api_name="/add_text"
-        )
+        # Формируем входные данные для Gradio
+        input_data = {
+            "files": files_data,
+            "text": input_text
+        }
 
-        result = client.predict(
-            _chatbot=[[{
-                "id": None,
-                "elem_id": None,
-                "elem_classes": None,
-                "name": None,
-                "text": input_text,
-                "flushing": None,
-                "avatar": "",
-                "files": files_data
-            }, None]],
-            api_name="/agent_run"
-        )
+        try:
+            # Инициализация чата
+            client.predict(
+                _input=input_data,
+                _chatbot=[],
+                api_name="/add_text"
+            )
 
-        # Очищаем временные файлы
-        for file_data in files_data:
-            try:
-                os.remove(file_data["file"])
-                os.rmdir(os.path.dirname(file_data["file"]))
-            except:
-                pass
+            # Получение ответа
+            result = client.predict(
+                _chatbot=[[{
+                    "id": None,
+                    "elem_id": None,
+                    "elem_classes": None,
+                    "name": None,
+                    "text": input_text,
+                    "flushing": None,
+                    "avatar": "",
+                    "files": files_data
+                }, None]],
+                api_name="/agent_run"
+            )
 
-        return jsonify({'result': result}), 200
+            # Очистка временных файлов
+            for file_data in files_data:
+                try:
+                    os.remove(file_data["file"])
+                    os.rmdir(os.path.dirname(file_data["file"]))
+                except:
+                    pass
+
+            return jsonify({'result': result}), 200
+
+        except Exception as e:
+            print(f"Error in Gradio API call: {str(e)}")
+            raise
 
     except Exception as e:
+        print(f"Error in predict route: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
