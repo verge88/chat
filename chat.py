@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from gradio_client import Client
 import tempfile
 import os
+import base64
 
 app = Flask(__name__)
 client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
@@ -10,9 +11,6 @@ client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 def predict():
     try:
         input_text = request.form.get('text', '')
-        if not input_text:
-            input_text = "Проанализируйте прикрепленный файл" # Дефолтный текст если нет входного текста
-            
         files = request.files.getlist('files')
         
         files_data = []
@@ -25,45 +23,30 @@ def predict():
                 # Сохраняем файл
                 file.save(temp_path)
                 
+                # Читаем файл как base64
+                with open(temp_path, 'rb') as f:
+                    file_content = f.read()
+                    file_base64 = base64.b64encode(file_content).decode('utf-8')
+                
                 files_data.append({
-                    "file": temp_path,
-                    "alt_text": file.filename
+                    "name": file.filename,
+                    "data": f"data:application/octet-stream;base64,{file_base64}"
                 })
 
         # Формируем входные данные для Gradio
-        input_data = {
-            "files": files_data,
-            "text": input_text
-        }
-
         try:
-            # Инициализация чата
-            client.predict(
-                _input=input_data,
-                _chatbot=[],
-                api_name="/add_text"
-            )
-
-            # Получение ответа
+            # Отправляем один запрос с текстом и файлами
             result = client.predict(
-                _chatbot=[[{
-                    "id": None,
-                    "elem_id": None,
-                    "elem_classes": None,
-                    "name": None,
-                    "text": input_text,
-                    "flushing": None,
-                    "avatar": "",
-                    "files": files_data
-                }, None]],
-                api_name="/agent_run"
+                fn_index=0,  # Индекс функции в Gradio
+                text=input_text,
+                files=files_data
             )
 
             # Очистка временных файлов
-            for file_data in files_data:
+            for file in files:
                 try:
-                    os.remove(file_data["file"])
-                    os.rmdir(os.path.dirname(file_data["file"]))
+                    temp_path = os.path.join(tempfile.gettempdir(), file.filename)
+                    os.remove(temp_path)
                 except:
                     pass
 
