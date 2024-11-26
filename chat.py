@@ -27,7 +27,7 @@ def predict():
         
         # Первый вызов для добавления текста
         client.predict(
-            _input={"files": [], "text": input_text},
+            _input={"files": [], "text": 'напиши 5 тестовых вопросов на основе данного текста:' + input_text},
             _chatbot=[],
             api_name="/add_text"
         )
@@ -39,7 +39,7 @@ def predict():
                 "elem_id": None, 
                 "elem_classes": None, 
                 "name": None,
-                "text": input_text,
+                "text": 'напиши 5 тестовых вопросов на основе данного текста:' + input_text,
                 "files": []
             }, None]],
             api_name="/agent_run"
