@@ -8,26 +8,31 @@ client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Проверяем наличие файла в запросе
-    if 'file' not in request.files:
-        return jsonify({'error': 'No file uploaded'}), 400
+    # Получение данных из запроса
+    test_name = request.form.get('test_name')
+    question_count = request.form.get('question_count')
+    source_text = request.form.get('source_text', '')
+    file = request.files.get('file')
+
+    # Проверка наличия обязательных полей
+    if not all([test_name, question_count]) or (not source_text and not file):
+        return jsonify({'error': 'Необходимо указать название теста, количество вопросов и хотя бы один источник текста (поле или файл).'}), 400
     
-    file = request.files['file']
-    
+        
     # Сохраняем временный файл
     temp_path = os.path.join('/tmp', file.filename)
     file.save(temp_path)
     
     try:
         # Используем textract для конвертации файла в строку
-        input_text = textract.process(temp_path).decode('utf-8')
+        source_text = textract.process(temp_path).decode('utf-8')
         
         # Удаляем временный файл
         os.remove(temp_path)
         
         # Первый вызов для добавления текста
         client.predict(
-            _input={"files": [], "text": "напиши 5 тестовых вопросов на основе данного текста в виде кода SQLite для добавления в таблицу базы данных (в ответ дай только код для добавления вопросов в таблицу. Вот пример кода: INSERT INTO generated (id, question, correctAnswer, incorrectAnswers) VALUES(NULL, 'текст вопроса', 'правильный ответ', 'неправильный вариант ответа|неправильный вариант ответа|неправильный вариант ответа');)" + input_text},
+            _input={"files": [], "text": f"напиши {question_count} тестовых вопросов на основе данного {source_text} в виде кода SQLite для добавления в таблицу базы данных (в ответ дай только код для добавления вопросов в таблицу. Вот пример кода: INSERT INTO generated (id, question, correctAnswer, incorrectAnswers) VALUES(NULL, 'текст вопроса', 'правильный ответ', 'неправильный вариант ответа|неправильный вариант ответа|неправильный вариант ответа');)" + input_text},
             _chatbot=[],
             api_name="/add_text"
         )
@@ -39,7 +44,7 @@ def predict():
                 "elem_id": None, 
                 "elem_classes": None, 
                 "name": None,
-                "text": "напиши 5 тестовых вопросов на основе данного текста в виде кода SQLite для добавления в таблицу базы данных (в ответ дай только код для добавления вопросов в таблицу. Вот пример кода: INSERT INTO generated (id, question, correctAnswer, incorrectAnswers) VALUES(NULL, 'текст вопроса', 'правильный ответ', 'неправильный вариант ответа|неправильный вариант ответа|неправильный вариант ответа');)" + input_text,
+                "text": f"напиши {question_count} тестовых вопросов на основе данного {source_text} в виде кода SQLite для добавления в таблицу базы данных (в ответ дай только код для добавления вопросов в таблицу. Вот пример кода: INSERT INTO generated (id, question, correctAnswer, incorrectAnswers) VALUES(NULL, 'текст вопроса', 'правильный ответ', 'неправильный вариант ответа|неправильный вариант ответа|неправильный вариант ответа');)" + input_text},
                 "files": []
             }, None]],
             api_name="/agent_run"
