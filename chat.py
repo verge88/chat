@@ -37,7 +37,7 @@ def predict():
         )
         
         # Генерация SQL-запросов
-        prompt = f"напиши {question_count} тестовых вопросов на основе данного текста {text} в виде кода SQLite для добавления в таблицу базы данных (в ответ дай только код для добавления вопросов в таблицу. Вот пример кода: INSERT INTO generated (id, question, correctAnswer, incorrectAnswers) VALUES(NULL, 'текст вопроса', 'правильный ответ', 'неправильный вариант ответа|неправильный вариант ответа|неправильный вариант ответа');)"}
+        prompt = f"напиши {question_count} тестовых вопросов на основе данного текста {text} в виде кода SQLite для добавления в таблицу базы данных (в ответ дай только код для добавления вопросов в таблицу. Вот пример кода: INSERT INTO generated (id, question, correctAnswer, incorrectAnswers) VALUES(NULL, 'текст вопроса', 'правильный ответ', 'неправильный вариант ответа|неправильный вариант ответа|неправильный вариант ответа');)"
         result = client.predict(_chatbot=[[{"text": prompt, "files": []}, None]], api_name="/agent_run")
 
         return jsonify({'result': result}), 200
