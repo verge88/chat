@@ -2,3 +2,4 @@ gradio_client
 flask
 gunicorn
 textract==1.6.5
+extract-msg==0.54.0
