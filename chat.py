@@ -4,8 +4,8 @@ import textract
 import os
 
 app = Flask(__name__)
-#client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
-client = Client("Qwen/Qwen/Qwen2.5-Max-Demo")
+client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
+#client = Client("Qwen/Qwen/Qwen2.5-Max-Demo")
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -49,7 +49,7 @@ def predict():
 
     try:
         # Prepare prompt with question count
-        prompt = f"напиши {question_count} тестовых вопросов на основе данного текста в виде кода SQLite для добавления в таблицу базы данных (в ответ дай только код для добавления вопросов в таблицу. Вот пример кода: INSERT INTO generated (id, question, correctAnswer, incorrectAnswers) VALUES(NULL, 'текст вопроса', 'правильный ответ', 'неправильный вариант ответа|неправильный вариант ответа|неправильный вариант ответа');)" + input_text
+        prompt = f"напиши {question_count} тестовых вопросов на основе данного текста в виде кода SQLite для добавления в таблицу базы данных (в ответ дай ТОЛЬКО код для добавления вопросов в таблицу. Вот пример кода: INSERT INTO generated (id, question, correctAnswer, incorrectAnswers) VALUES(NULL, 'текст вопроса', 'правильный ответ', 'неправильный вариант ответа|неправильный вариант ответа|неправильный вариант ответа');)" + input_text
 
         # First call to add text
         client.predict(
