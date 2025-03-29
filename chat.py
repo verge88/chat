@@ -54,8 +54,8 @@ def predict():
         client.predict(
             _input={"files": [], "text": prompt},
             _chatbot=[],
-            api_name="/add_text"
-            timeout=120,  # Увеличьте время ожидания до 2 минут
+            api_name="/add_text",
+            timeout=120 # Увеличьте время ожидания до 2 минут
         )
         
         # Second call to run agent
@@ -68,8 +68,8 @@ def predict():
                 "text": prompt,
                 "files": []
             }, None]],
-            api_name="/agent_run"
-            timeout=120,  # Увеличьте время ожидания до 2 минут
+            api_name="/agent_run",
+            timeout=120  # Увеличьте время ожидания до 2 минут
         )
         
         return jsonify({
