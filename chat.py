@@ -4,7 +4,8 @@ import textract
 import os
 
 app = Flask(__name__)
-client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
+#client = Client("Qwen/Qwen2.5-Turbo-1M-Demo")
+client = Client("Qwen/Qwen/Qwen2.5-Max-Demo")
 
 @app.route('/predict', methods=['POST'])
 def predict():
