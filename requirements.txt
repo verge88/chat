@@ -3,3 +3,5 @@ flask
 gunicorn
 textract
 extract-msg
+logging
+traceback
