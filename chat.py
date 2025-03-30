@@ -60,7 +60,7 @@ def predict():
             _input={"files": [], "text": prompt},
             _chatbot=[],
             api_name="/add_text",
-            timeout=180  # 3 minutes
+            #timeout=180  # 3 minutes
         )
         
         # Second call to run agent with increased timeout
@@ -74,7 +74,7 @@ def predict():
                 "files": []
             }, None]],
             api_name="/agent_run",
-            timeout=180  # 3 minutes
+            #timeout=180  # 3 minutes
         )
         
         print("Successfully generated response")
