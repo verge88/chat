@@ -71,7 +71,7 @@ def predict():
                 history=[],
                 system="You are a helpful assistant.",
                 api_name="/model_chat",
-                timeout=180  # Увеличиваем время ожидания до 3 минут
+                #timeout=180  # Увеличиваем время ожидания до 3 минут
             )
             
             logger.debug(f"Response received: {result}")
