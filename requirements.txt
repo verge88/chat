@@ -5,5 +5,3 @@ textract
 extract-msg
 antiword
 pdftotext
-libxml2
-libxslt
