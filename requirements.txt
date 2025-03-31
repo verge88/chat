@@ -4,4 +4,3 @@ gunicorn
 textract
 extract-msg
 antiword
-pdftotext
